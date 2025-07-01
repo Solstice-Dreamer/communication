@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Command><Name>follow</Name><Parameters><follow_ip>[192.168.1.202]</follow_ip><alt>1.2</alt><ip>192.168.1.200</ip></Parameters></Command>

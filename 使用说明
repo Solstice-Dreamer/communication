@@ -1,0 +1,8 @@
+说明：
+1、机载电脑开机自启动receive_command.py函数进行监听，端口号为9999;
+2、地面电脑进入communicate环境，并在~/communication目录下打开终端，运行./start.sh命令进入python控制台，调用command_help()函数可查看所有命令的用法及说明;
+3、地面电脑进入communicate环境，并在~/communication目录下打开终端，运行python monitorUAV.py --port 10001，实时获取无人机位置、电量等信息并可视化;
+4、记载电脑开机子启动command_change.py函数监听文件夹，对部分命令转化为定点飞行命令。
+
+
+开机自启动方法：1)写start.sh文件，位于主文件夹下; 2)打开启动应用程序，添加额外的启动程序，命令为：gnome-terminal -x "/home/seob02/start.sh"
