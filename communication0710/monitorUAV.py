@@ -1,4 +1,4 @@
-from UAV import UAVmonitor
+from MonitorView import UAVmonitor_3D, UAVmonitor_2D
 from pyqtgraph.Qt import QtCore
 import sys
 import socket
@@ -21,9 +21,11 @@ def monitoring(port=10001):
         sys.exit(1)
 
     app = QtWidgets.QApplication(sys.argv)
-    computer_pos = [0, 0, 0]
-    window = UAVmonitor(computer_pos)
-    window.show()
+    computer_pos = [39.9, 116.4, 0]
+    # window = UAVmonitor_3D(computer_pos)
+    window2 = UAVmonitor_2D(800, 800, computer_pos, "http://localhost:8080/amap_transparent.html")
+    # window.show()
+    window2.show()
 
     def check_udp_data():
         # 使用 select 检查是否有可读数据
@@ -34,10 +36,11 @@ def monitoring(port=10001):
                 message = data.decode().split()
                 if message[0] == "state":
                     print(f"收到状态消息，来自无人机 {addr}")
-                    pos = np.array([float(message[1]), float(message[2]), -float(message[3])]).reshape(1, 3)
+                    pos = np.array([float(message[1]), float(message[2]), float(message[3])]).reshape(1, 3)
                     quat = np.array([float(message[4]), float(message[5]), float(message[6]), float(message[7])]).reshape(1, 4)
                     battery = float(message[8])
-                    window.update_uav(addr[0], pos, battery)
+                    # window.update_uav(addr[0], None, pos, quat, battery)
+                    window2.overlay.update_uav(addr[0], None, pos, quat, battery)
                 # 可添加其他消息类型处理
             except Exception as e:
                 print(f"解析异常: {e}")

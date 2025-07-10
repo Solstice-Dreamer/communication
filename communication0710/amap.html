@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>PyQt6 高德地图 UAV Demo</title>
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=09237d566854de647cf2a260def7268a"></script>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+    var map = new AMap.Map('map', {
+      center: [116.397428, 39.90923], //初始化地图中心点，默认为天安门
+      zoom: 13
+    });
+
+    var uavMarkers = {};       // UAV id → marker
+    var uavColors = {};        // UAV id → color
+    var uavTracks = {};        // UAV id → array of [lon, lat]
+    var uavPolylines = {};     // UAV id → polyline object
+
+    // 设置map的中心点为地面站坐标
+    function setMapCenter(lon, lat) {
+      map.setCenter([lon, lat]);
+    }
+    // 生成较深随机颜色
+    function getRandomDarkColor() {
+      let r = Math.floor(Math.random() * 128);
+      let g = Math.floor(Math.random() * 128);
+      let b = Math.floor(Math.random() * 128);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    var groundStationMarker = null;
+    // 在地图上绘制地面站气球标记
+    function addGroundStation(lat, lon, label) {
+      if (groundStationMarker) {
+        groundStationMarker.setPosition([lon, lat]);
+      } else {
+        groundStationMarker = new AMap.Marker({
+          position: [lon, lat],
+          title: label,
+          icon: new AMap.Icon({
+            // 这里用默认气球样式，也可以自定义图标
+            image: 'https://webapi.amap.com/theme/v1.3/markers/b/mark_b.png',
+            size: new AMap.Size(24, 34),
+            imageSize: new AMap.Size(24, 34)
+          }),
+          offset: new AMap.Pixel(-12, -34),  // 这里是负的宽度一半和负的高度，向左上移动图标
+          label: {
+            content: label,
+            direction: 'top',
+            offset: new AMap.Pixel(0, -5),  // label偏移，刚好在图标上方
+            style: {
+              color: '#000',
+              fontWeight: 'bold',
+              backgroundColor: 'rgba(255,255,255,0.8)',
+              padding: '2px 6px',
+              borderRadius: '3px',
+              border: '1px solid #666'
+            }
+          }
+        });
+        groundStationMarker.setMap(map);
+      }
+    }
+
+    /**
+     * 在地图上新增或更新无人机位置
+     * @param {string} uavId - 无人机唯一标识
+     * @param {number} lon
+     * @param {number} lat
+     * @param {number} battery
+     */
+    function updateUav(uavId, lat, lon, battery) {
+      if (!uavColors[uavId]) {
+        uavColors[uavId] = getRandomDarkColor();
+      }
+      const color = uavColors[uavId];
+
+      // 初始化轨迹数组
+      if (!uavTracks[uavId]) {
+        uavTracks[uavId] = [];
+      }
+      uavTracks[uavId].push([lon, lat]);
+
+      // 已有 Marker → 更新位置和 label
+      if (uavMarkers[uavId]) {
+        uavMarkers[uavId].setPosition([lon, lat]);
+
+        uavMarkers[uavId].setLabel({
+          content: `${uavId}<br>电量: ${battery}%`,
+          direction: 'top',
+          style: {
+            backgroundColor: color,
+            color: "#fff",
+            padding: "2px 4px",
+            borderRadius: "3px",
+            fontSize: "12px",
+            boxShadow: `0 0 0 2px ${color}`
+          }
+        });
+
+        uavMarkers[uavId].setTitle(`${uavId} 电量: ${battery}%`);
+
+      } else {
+        // 新建 SVG icon
+        var svgIcon = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+            <circle cx="10" cy="10" r="8" fill="${color}" stroke="white" stroke-width="2"/>
+          </svg>
+        `;
+
+        var icon = new AMap.Icon({
+          image: 'data:image/svg+xml;base64,' + btoa(svgIcon),
+          size: new AMap.Size(20, 20),
+          imageSize: new AMap.Size(20, 20)
+        });
+
+        var marker = new AMap.Marker({
+          position: [lon, lat],
+          icon: icon,
+          anchor: 'center',
+          title: `${uavId} 电量: ${battery}%`,
+          label: {
+            content: `${uavId}<br>电量: ${battery}%`,
+            direction: 'top',
+            style: {
+              backgroundColor: color,
+              color: "#fff",
+              padding: "2px 4px",
+              borderRadius: "3px",
+              fontSize: "12px",
+              boxShadow: `0 0 0 2px ${color}`
+            }
+          }
+        });
+        marker.setMap(map);
+        uavMarkers[uavId] = marker;
+      }
+
+      // 更新或新建 Polyline
+      if (uavPolylines[uavId]) {
+        uavPolylines[uavId].setPath(uavTracks[uavId]);
+      } else {
+        var polyline = new AMap.Polyline({
+          path: uavTracks[uavId],
+          strokeColor: color,
+          strokeWeight: 3,
+          lineJoin: 'round',
+          lineCap: 'round'
+        });
+        polyline.setMap(map);
+        uavPolylines[uavId] = polyline;
+      }
+    }
+
+    console.log("AMap ready!");
+  </script>
+</body>
+</html>
+

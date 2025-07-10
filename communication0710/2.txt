@@ -1,0 +1,19 @@
+a = search(9999)
+
+start(a[1],20,9999)
+
+start(a[0],10,9999)
+
+follow(a[1],a[0],10,9999)
+
+flytopoint(a[1],0,20,20,9999)
+
+flytopoint(a[1],0,10,20,9999)
+
+stopfollow(a[1],9999)
+
+flytopoint(a[1],0,0,20,9999)
+
+land(a[1],9999)
+
+back(a[0],6,9999)

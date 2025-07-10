@@ -39,7 +39,7 @@ void send_info(const UAV_info& info, int port) {
     sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    inet_pton(AF_INET, "192.168.1.255", &(addr.sin_addr));
+    inet_pton(AF_INET, "10.101.121.81", &(addr.sin_addr));
     // addr.sin_addr.s_addr = inet_addr("10.101.121.255"); // 通信地址地址
 
     ssize_t sent = sendto(sock, message.c_str(), message.size(), 0,
@@ -54,10 +54,58 @@ void send_info(const UAV_info& info, int port) {
 }
 
 int main() {
-    UAV_info uav{{1, 2, -3}, {0, 1, 0, 0}, 50};
-    int port = 10003;
-    send_info(uav, port);
-    return 0;
+
+
+    for (int i = 0; i < 10; i++){
+        UAV_info uav{{116.4 + 0.001*i, 39.9+0.001*i, i}, {0, 1, 0, 0}, 100 - i};
+        int port = 10001;
+        send_info(uav, port);
+        sleep(1);
+    }
+
+    // for (int i = 0; i < 10; i++){
+    //     UAV_info uav{{0, 0, i}, {0, 1, 0, 0}, 100 - i};
+    //     int port = 10001;
+    //     send_info(uav, port);
+    //     sleep(1);
+    // }
+    // sleep(15);
+    // for (int i = 0; i < 5; i++){
+    //     UAV_info uav{{0, i, 10}, {0, 1, 0, 0}, 90 - i};
+    //     int port = 10001;
+    //     send_info(uav, port);
+    //     sleep(1);
+    // }
+    // sleep(5);
+    // for (int i = 0; i < 5; i++){
+    //     UAV_info uav{{i, 5, 10}, {0, 1, 0, 0}, 85 - i};
+    //     int port = 10001;
+    //     send_info(uav, port);
+    //     sleep(1);
+    // }
+    // sleep(5);
+    // for (int i = 0; i < 5; i++){
+    //     UAV_info uav{{5, 5-i, 10}, {0, 1, 0, 0}, 80 - i};
+    //     int port = 10001;
+    //     send_info(uav, port);
+    //     sleep(1);
+    // }
+    // sleep(5);
+    // for (int i = 0; i < 5; i++){
+    //     UAV_info uav{{5-i, 0, 10}, {0, 1, 0, 0}, 75 - i};
+    //     int port = 10001;
+    //     send_info(uav, port);
+    //     sleep(1);
+    // }
+    // sleep(5);
+    // for (int i = 0; i < 10; i++){
+    //     UAV_info uav{{0, 0, 10-i}, {0, 1, 0, 0}, 70 - i};
+    //     int port = 10001;
+    //     send_info(uav, port);
+    //     sleep(1);
+    // }
+    // sleep(5);
+    // return 0;
 }
 
 

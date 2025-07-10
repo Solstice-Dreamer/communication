@@ -13,6 +13,7 @@ from send_command import release
 from send_command import follow
 from send_command import land
 from send_command import flytopoint
+from send_command import stopfollow
 from send_command import send_message
 from send_command import command_help
 

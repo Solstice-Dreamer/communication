@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import multi_point_fly
 
 # 设置扫描的文件夹路径
-folder_path = './commands_xml'
+folder_path = './commands_xml_2'
 
 # 设置扫描的时间间隔（秒）
 scan_interval = 5

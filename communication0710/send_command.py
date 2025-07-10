@@ -32,10 +32,14 @@ def build_command_parser():
     # 无额外参数
 
     # follow 子命令
-    follow_parser = subparsers.add_parser("follow", help="将列表内无人机全部跟随目标无人机命令")
+    follow_parser = subparsers.add_parser("follow", help="将目标无人机引导全部列表内无人机跟随命令")
     follow_parser.add_argument("--ip", type=str, required=True, help="执行命令的无人机ip")
     follow_parser.add_argument("--follow_ip", type=str, required=True, help="目标无人机ip")
     follow_parser.add_argument("--alt", type=float, required=True, help="跟随高差")
+
+    # stopfollow 子命令
+    stopfollow_parser = subparsers.add_parser("stopfollow", help="停止目标无人机引导命令")
+    stopfollow_parser.add_argument("--ip", type=str, required=True, help="执行命令的无人机ip")
 
     # release 子命令
     release_parser = subparsers.add_parser("release", help="解除列表内所有无人机任务，立即悬停")
@@ -106,8 +110,8 @@ start_min_alt = 5
 start_max_alt = 100
 back_min_alt = 5
 back_max_alt = 100
-follow_min_alt = 1
-follow_max_alt = 3
+follow_min_alt = 3
+follow_max_alt = 20
 go_min_interval = 5
 go_max_interval = 30
 
@@ -163,6 +167,13 @@ def land(ip, port=9999):
         print("请指定接收命令的无人机ip！")
 
 
+def stopfollow(ip, port=9999):
+    if len(ip) != 0:
+        send_command(f"stopfollow --ip '{ip}'", port)
+    else:
+        print("请指定接收命令的无人机ip！")
+
+
 def flytopoint(ip, x, y, z, port=9999):
     if len(ip) != 0:
         send_command(f"flytopoint --ip '{ip}' --x {x} --y {y} --z {z}", port)
@@ -205,6 +216,9 @@ def command_help():
 
     print("8. ip = search(port = 9999, timeout = 1)")
     print("   搜索所有正在监听的无人机，返回ip列表")
+
+    print("9. stopfollow(ip, port=9999)")
+    print("   停止目标无人机ip引导其他无人机跟随")
 
     print("注意：局部坐标系下，z轴垂直地面向下。")
 
