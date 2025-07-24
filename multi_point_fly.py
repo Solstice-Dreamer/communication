@@ -66,7 +66,7 @@ def read_txt_point(filepath, check_interval=1.0):
 
 def execute_back(alt):
     start_point = read_txt_point(os.path.join(WATCH_FOLDER, 'start_point.txt'))
-    current_point = read_txt_point(os.path.join(WATCH_FOLDER, 'gps_point.txt'))
+    current_point = read_txt_point(os.path.join(WATCH_FOLDER, 'current_point.txt'))
     path = np.zeros((3, 3))
 
     # 计算经过的三个点
@@ -77,7 +77,7 @@ def execute_back(alt):
 
     path[0][2] = path[0][2] + alt
     path[1][2] = path[1][2] + alt
-    path[1][2] = path[1][2] + 2.0 # 防止因GPS不准而造成的碰撞
+    path[2][2] = path[2][2] + 2.0 # 防止因GPS不准而造成的碰撞
 
     # 若存在xml文件，读取，如果为return，则转化为三个点传给本机，同时写一个land指令
     try:
@@ -113,7 +113,7 @@ def execute_follow(follow_ip, alt):
             if first_char == "0":
                 break
 
-            current_point = read_txt_point(os.path.join(WATCH_FOLDER, 'gps_point.txt'))
+            current_point = read_txt_point(os.path.join(WATCH_FOLDER, 'current_point.txt'))
             for i in range(ip_num):
                 for j in range(3):
                     points[i][j] = float(current_point[0][j])

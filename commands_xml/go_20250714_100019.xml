@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Command><Name>go</Name><Parameters><path>[3, 4, 5, 6, 7, 8]</path><interval>10.0</interval><ip>10.101.121.81</ip></Parameters></Command>

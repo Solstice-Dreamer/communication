@@ -34,11 +34,13 @@ def listening(port=9999):
             # 用于接收指令
             else:
                 try:
-                    out_dir = "./commands_xml"
+                    out_dir_1 = "./commands_xml"
+                    out_dir_2 = "./commands_xml_2"
                     print(f"\n收到来自 {addr} 的指令：")
                     command = json.loads(data.decode())
                     print("指令内容：", command)
-                    save_command_to_xml(out_dir, command)
+                    save_command_to_xml(out_dir_1, command)
+                    save_command_to_xml(out_dir_2, command)
                     sock.sendto("message command reached".encode(), addr)
 
                 except json.JSONDecodeError:

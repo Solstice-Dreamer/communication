@@ -1,0 +1,368 @@
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head>-->
+<!--  <meta charset="utf-8" />-->
+<!--  <title>Leaflet Offline Map</title>-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />-->
+<!--  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>-->
+<!--  <script src="qrc:///qtwebchannel/qwebchannel.js"></script>-->
+<!--  <style>-->
+<!--    html, body, #map {-->
+<!--      height: 100%;-->
+<!--      margin: 0;-->
+<!--      padding: 0;-->
+<!--    }-->
+<!--  </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--  <div id="map"></div>-->
+<!--  <script>-->
+<!--    // 中心定位在武汉-->
+<!--    var map = L.map('map').setView([30.6, 114.3], 13);-->
+<!--    var layer = L.tileLayer('http://localhost:8080/tiles/{z}/{x}/{y}.png', {-->
+<!--      minZoom: 12,-->
+<!--      maxZoom: 14,-->
+<!--      tileSize: 256,-->
+<!--      attribution: 'Local Tiles',-->
+<!--      errorTileUrl: 'https://via.placeholder.com/256/ff0000/ffffff?text=Tile+Error'-->
+<!--    });-->
+
+<!--    layer.on('tileerror', function(e) {-->
+<!--      console.log('Tile load error:', e.tile.src);-->
+<!--    });-->
+
+<!--    layer.addTo(map);-->
+
+<!--    window.getMapCornerCoordinates = function() {-->
+<!--      const bounds = map.getBounds();-->
+<!--      const sw = bounds.getSouthWest();-->
+<!--      const ne = bounds.getNorthEast();-->
+
+<!--      return {-->
+<!--        topLeft:     [sw.lng, ne.lat],-->
+<!--        topRight:    [ne.lng, ne.lat],-->
+<!--        bottomRight: [ne.lng, sw.lat],-->
+<!--        bottomLeft:  [sw.lng, sw.lat]-->
+<!--      };-->
+<!--    };-->
+
+<!--    function notifyPython() {-->
+<!--      const coords = getMapCornerCoordinates();-->
+<!--      console.log("即将发送角点坐标给 Python:", coords);-->
+<!--      if (window.pyBridge && window.pyBridge.onCornersChanged) {-->
+<!--          window.pyBridge.onCornersChanged(coords);-->
+<!--      } else {-->
+<!--          console.warn("pyBridge 尚未准备好。");-->
+<!--      }-->
+<!--    }-->
+
+<!--    if (typeof qt !== "undefined") {-->
+<!--      new QWebChannel(qt.webChannelTransport, function(channel) {-->
+<!--        window.pyBridge = channel.objects.pyBridge;-->
+
+<!--        notifyPython();-->
+
+<!--        map.on('moveend', notifyPython);-->
+<!--        map.on('zoomend', notifyPython);-->
+<!--      });-->
+<!--    } else {-->
+<!--      console.warn("qt is not defined. Running outside Qt environment.");-->
+<!--    }-->
+<!--  </script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head>-->
+<!--  <meta charset="utf-8" />-->
+<!--  <title>Leaflet Offline Map with Drawing</title>-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <link-->
+<!--    rel="stylesheet"-->
+<!--    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"-->
+<!--  />-->
+<!--  <link-->
+<!--    rel="stylesheet"-->
+<!--    href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css"-->
+<!--  />-->
+<!--  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>-->
+<!--  <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>-->
+<!--  <script src="qrc:///qtwebchannel/qwebchannel.js"></script>-->
+<!--  <style>-->
+<!--    html,-->
+<!--    body,-->
+<!--    #map {-->
+<!--      height: 100%;-->
+<!--      margin: 0;-->
+<!--      padding: 0;-->
+<!--    }-->
+<!--  </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--  <div id="map"></div>-->
+<!--  <script>-->
+<!--    var map, lat, lng, zoom;-->
+
+<!--    // 设置武汉市的经纬度和缩放级别-->
+<!--    lat = 30.5728;  // 纬度-->
+<!--    lng = 114.3055; // 经度-->
+<!--    zoom = 13;      // 缩放级别-->
+
+<!--    if (typeof qt !== "undefined") {-->
+<!--      new QWebChannel(qt.webChannelTransport, function(channel) {-->
+<!--        window.pyBridge = channel.objects.pyBridge;-->
+
+<!--        // 初始化地图，固定武汉市为中心-->
+<!--        map = L.map("map").setView([lat, lng], zoom);-->
+
+<!--        var layer = L.tileLayer(-->
+<!--          "http://localhost:8080/tiles/{z}/{x}/{y}.png",-->
+<!--          {-->
+<!--            minZoom: 12,-->
+<!--            maxZoom: 14,-->
+<!--            tileSize: 256,-->
+<!--            attribution: "Local Tiles",-->
+<!--            errorTileUrl:-->
+<!--              "https://via.placeholder.com/256/ff0000/ffffff?text=Tile+Error",-->
+<!--          }-->
+<!--        );-->
+<!--        layer.addTo(map);-->
+
+<!--        var drawnItems = new L.FeatureGroup();-->
+<!--        map.addLayer(drawnItems);-->
+
+<!--        var drawControl = new L.Control.Draw({-->
+<!--          edit: {-->
+<!--            featureGroup: drawnItems,-->
+<!--          },-->
+<!--          draw: {-->
+<!--            polygon: true,-->
+<!--            polyline: false,-->
+<!--            rectangle: false,-->
+<!--            circle: false,-->
+<!--            marker: false,-->
+<!--            circlemarker: false,-->
+<!--          },-->
+<!--        });-->
+<!--        map.addControl(drawControl);-->
+
+<!--        map.on(L.Draw.Event.CREATED, function (event) {-->
+<!--          try {-->
+<!--            var layer = event.layer;-->
+<!--            drawnItems.addLayer(layer);-->
+
+<!--            var geojsonStr = JSON.stringify(layer.toGeoJSON());-->
+<!--            console.log("发送给 Python 的 GeoJSON:", geojsonStr);-->
+
+<!--            if (window.pyBridge && window.pyBridge.onPolygonDrawn) {-->
+<!--              window.pyBridge.onPolygonDrawn(geojsonStr);-->
+<!--            }-->
+<!--          } catch (e) {-->
+<!--            console.error("Error handling draw created event:", e);-->
+<!--          }-->
+<!--        });-->
+
+<!--        notifyPython();-->
+
+<!--        map.on('moveend', notifyPython);-->
+<!--        map.on('zoomend', notifyPython);-->
+<!--      });-->
+<!--    } else {-->
+<!--      console.warn("qt is not defined. Running outside Qt environment.");-->
+<!--    }-->
+
+<!--    function getMapCornerCoordinates() {-->
+<!--      if (!map) return null;-->
+
+<!--      const bounds = map.getBounds();-->
+<!--      const sw = bounds.getSouthWest();-->
+<!--      const ne = bounds.getNorthEast();-->
+
+<!--      return {-->
+<!--        topLeft: [sw.lng, ne.lat],-->
+<!--        topRight: [ne.lng, ne.lat],-->
+<!--        bottomRight: [ne.lng, sw.lat],-->
+<!--        bottomLeft: [sw.lng, sw.lat],-->
+<!--      };-->
+<!--    }-->
+
+<!--    function notifyPython() {-->
+<!--      const coords = getMapCornerCoordinates();-->
+<!--      console.log("即将发送角点坐标给 Python:", coords);-->
+<!--      if (window.pyBridge && window.pyBridge.onCornersChanged) {-->
+<!--        window.pyBridge.onCornersChanged(coords);-->
+<!--      } else {-->
+<!--        console.warn("pyBridge 尚未准备好。");-->
+<!--      }-->
+<!--    }-->
+<!--  </script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head>-->
+<!--  <meta charset="utf-8" />-->
+<!--  <title>Leaflet Offline Map with Drawing</title>-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <link-->
+<!--    rel="stylesheet"-->
+<!--    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"-->
+<!--  />-->
+<!--  <link-->
+<!--    rel="stylesheet"-->
+<!--    href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css"-->
+<!--  />-->
+<!--  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>-->
+<!--  <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>-->
+<!--  <script src="qrc:///qtwebchannel/qwebchannel.js"></script>-->
+<!--  <style>-->
+<!--    html,-->
+<!--    body,-->
+<!--    #map {-->
+<!--      height: 100%;-->
+<!--      margin: 0;-->
+<!--      padding: 0;-->
+<!--    }-->
+<!--  </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--  <div id="map"></div>-->
+<!--  <script>-->
+<!--    var map, lat, lng, zoom;-->
+
+<!--    // 设置武汉市的经纬度和缩放级别-->
+<!--    lat = 30.5728;  // 纬度-->
+<!--    lng = 114.3055; // 经度-->
+<!--    zoom = 13;      // 缩放级别-->
+
+<!--    if (typeof qt !== "undefined") {-->
+<!--      new QWebChannel(qt.webChannelTransport, function(channel) {-->
+<!--        window.pyBridge = channel.objects.pyBridge;-->
+
+<!--        channel.objects.pyBridge.mapInit.connect(function(lat, lng, zoom) {-->
+<!--          console.log("从 Python 接收到初始地图参数:", lat, lng, zoom);-->
+<!--        });-->
+
+<!--        map = L.map("map").setView([lat, lng], zoom);-->
+
+<!--        var layer = L.tileLayer(-->
+<!--          "http://localhost:8080/tiles/{z}/{x}/{y}.png",-->
+<!--          {-->
+<!--            minZoom: 12,-->
+<!--            maxZoom: 14,-->
+<!--            tileSize: 256,-->
+<!--            attribution: "Local Tiles",-->
+<!--            errorTileUrl:-->
+<!--              "https://via.placeholder.com/256/ff0000/ffffff?text=Tile+Error",-->
+<!--          }-->
+<!--        );-->
+<!--        layer.addTo(map);-->
+
+<!--        var drawnItems = new L.FeatureGroup();-->
+<!--        map.addLayer(drawnItems);-->
+
+<!--        var drawControl = new L.Control.Draw({-->
+<!--          edit: {-->
+<!--            featureGroup: drawnItems,-->
+<!--          },-->
+<!--          draw: {-->
+<!--            polygon: true,-->
+<!--            polyline: false,-->
+<!--            rectangle: false,-->
+<!--            circle: false,-->
+<!--            marker: false,-->
+<!--            circlemarker: false,-->
+<!--          },-->
+<!--        });-->
+<!--        map.addControl(drawControl);-->
+
+<!--        map.on(L.Draw.Event.CREATED, function (event) {-->
+<!--          try {-->
+<!--            var layer = event.layer;-->
+<!--            drawnItems.addLayer(layer);-->
+
+<!--            var geojsonStr = JSON.stringify(layer.toGeoJSON());-->
+<!--            console.log("发送给 Python 的 GeoJSON:", geojsonStr);-->
+
+<!--            if (window.pyBridge && window.pyBridge.onPolygonDrawn) {-->
+<!--              window.pyBridge.onPolygonDrawn(geojsonStr);-->
+<!--            }-->
+<!--          } catch (e) {-->
+<!--            console.error("Error handling draw created event:", e);-->
+<!--          }-->
+<!--        });-->
+
+<!--        notifyPython();-->
+
+<!--        map.on('moveend', notifyPython);-->
+<!--        map.on('zoomend', notifyPython);-->
+<!--      });-->
+<!--    } else {-->
+<!--      console.warn("qt is not defined. Running outside Qt environment.");-->
+<!--    }-->
+
+<!--    function getMapCornerCoordinates() {-->
+<!--      if (!map) return null;-->
+
+<!--      const bounds = map.getBounds();-->
+<!--      const sw = bounds.getSouthWest();-->
+<!--      const ne = bounds.getNorthEast();-->
+
+<!--      return {-->
+<!--        topLeft: [sw.lng, ne.lat],-->
+<!--        topRight: [ne.lng, ne.lat],-->
+<!--        bottomRight: [ne.lng, sw.lat],-->
+<!--        bottomLeft: [sw.lng, sw.lat],-->
+<!--      };-->
+<!--    }-->
+
+<!--    function notifyPython() {-->
+<!--      const coords = getMapCornerCoordinates();-->
+<!--      console.log("即将发送角点坐标给 Python:", coords);-->
+<!--      if (window.pyBridge && window.pyBridge.onCornersChanged) {-->
+<!--        window.pyBridge.onCornersChanged(coords);-->
+<!--      } else {-->
+<!--        console.warn("pyBridge 尚未准备好。");-->
+<!--      }-->
+<!--    }-->
+<!--  </script>-->
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Leaflet Offline Map with Drawing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css"
+  />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+  <style>
+    html,
+    body,
+    #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+    <script src = "offset.js" defer></script>
+</body>
+</html>

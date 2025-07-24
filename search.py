@@ -1,6 +1,5 @@
 import socket
 import time
-from send_command import send_message
 
 def search(port = 9999, timeout = 1):
     message = "message ping"  # 探针消息
